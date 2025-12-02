@@ -148,11 +148,11 @@
      * USER CONFIG (edit these!)
      *******************/
     const CONFIG = {
-      chapters: 7,                // you chose 7
-      counts: [6,6,6,6,6,6,6],    // number of images in each ch folder (set correctly)
-      folderBase: 'photos',       // leave as-is unless you want different path
-      photoPrefix: '',            // if you prefix filenames, put it here (e.g. 'IMG_')
-      ext: 'jpg'                  // common extension (jpg or png). Keep consistent.
+      chapters: 7,
+      totalPhotos: 150,        // total photos in ONE single folder
+      folderBase: 'photos/all', // new single folder
+      photoPrefix: '',
+      ext: 'jpg'
     }
 
     // Chapter text content (7 entries)
@@ -185,17 +185,28 @@
     }
 
     // load a chapter photos: choose up to 4 photos for the left spread
-    function getPhotoPathsForChapter(ch){
-      const paths = [];
-      const count = CONFIG.counts[ch] || 0;
-      // pick up to 4: the algorithm chooses evenly across the folder
-      const picks = Math.min(4, count);
-      for(let i=0;i<picks;i++){
-        // distribute indices roughly evenly
-        const idx = Math.floor((i*(count-1))/(picks-1 || 1)) + 1;
-        paths.push(`${CONFIG.folderBase}/ch${ch+1}/${CONFIG.photoPrefix}${idx}.${CONFIG.ext}`);
+    // global list of unused photos
+    let unusedPhotos = [];
+
+    function initUnused(){
+      unusedPhotos = [];
+      for(let i=1;i<=CONFIG.totalPhotos;i++) unusedPhotos.push(i);
+      // shuffle
+      for(let i = unusedPhotos.length - 1; i > 0; i--){
+        const j = Math.floor(Math.random() * (i + 1));
+        [unusedPhotos[i], unusedPhotos[j]] = [unusedPhotos[j], unusedPhotos[i]];
       }
-      return paths;
+    }
+
+    function getPhotoPathsForChapter(ch){
+      const picks = [];
+      for(let i=0;i<4;i++){
+        if(unusedPhotos.length === 0) break;
+        const id = unusedPhotos.pop();
+        picks.push(`${CONFIG.folderBase}/${CONFIG.photoPrefix}${id}.${CONFIG.ext}`);
+      }
+      return picks;
+    }
     }
 
     // render chapter
@@ -296,7 +307,7 @@
     }
 
     // initialize
-    (function init(){
+    (function init(){ initUnused();(){
       renderChapter(0);
       startParticles();
     })();
@@ -304,3 +315,4 @@
   </script>
 </body>
 </html>
+
