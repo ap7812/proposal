@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Our Book — Will you be my girlfriend?</title>
+  <meta name="description" content="A little magical memory-book built for her. Drop photos into folders and host on GitHub Pages." />
+  <style>
+    /* -----------------------
+       CONFIGurable styling
+       ----------------------- */
+    :root{
+      --bg: #0f0b08;
+      --paper: #fff9ef;
+      --gold: #d9b36b;
+      --text: #2b1f16;
+      --muted: #6b5a4a;
+      --accent: #b76d9b;
+      --max-width: 1100px;
+      --safe-pad: 24px;
+      font-family: 'Georgia', ui-serif, serif;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;background:radial-gradient(1200px 600px at 10% 10%, rgba(215,185,135,0.06), transparent 10%), linear-gradient(180deg,var(--bg), #0b0b0b 60%);color:var(--paper)}
+
+    /* soft vignette + gold dust */
+    body::after{
+      content:'';pointer-events:none;position:fixed;inset:0;background-image:radial-gradient(ellipse at center, rgba(0,0,0,0.2), transparent 40%);
+      mix-blend-mode:overlay;opacity:.6
+    }
+
+    .stage{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:60px}
+    .book-wrap{width:100%;max-width:var(--max-width);position:relative}
+
+    .book{
+      display:flex;gap:28px;padding:36px;border-radius:12px;background:linear-gradient(180deg,#111010 0%, #0e0c0b 100%);box-shadow:0 20px 80px rgba(0,0,0,.6);
+      align-items:center;justify-content:center;overflow:hidden;position:relative
+    }
+
+    /* left: paper spread */
+    .paper{
+      width:55%;min-height:60vh;background:linear-gradient(180deg,#fffef8 0%, #f4eadf 100%);border-radius:8px;padding:28px;display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.5);
+    }
+
+    .photo{width:100%;height:100%;object-fit:cover;border-radius:6px;box-shadow:0 8px 30px rgba(13,10,9,.35);transform-origin:center;transition:transform .6s cubic-bezier(.2,.9,.3,1)}
+    .photo:hover{transform:scale(1.03)}
+
+    /* right: text page */
+    .text-page{width:45%;min-height:60vh;background:linear-gradient(180deg,#fffcf6 0%, #fbf3e8 100%);border-radius:8px;padding:40px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;box-shadow:inset 0 1px 0 rgba(255,255,255,.6)}
+
+    h1.chapter-title{font-family: 'Palatino Linotype', 'Georgia', serif;margin:0;font-size:30px;color:var(--text);letter-spacing:0.2px}
+    p.line{color:var(--muted);font-size:18px;margin:12px 0;line-height:1.45}
+
+    .gold-ink{color:var(--gold);font-weight:700}
+
+    /* controls */
+    .controls{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);display:flex;gap:12px}
+    .btn{background:transparent;border:1px solid rgba(255,255,255,.06);color:var(--paper);padding:10px 14px;border-radius:9px;cursor:pointer;font-size:15px}
+    .btn.primary{background:linear-gradient(90deg,var(--gold), #f7daa5);color:var(--text);box-shadow:0 8px 30px rgba(215,170,95,.15)}
+
+    /* final chapter styles */
+    .proposal{font-size:28px;color:var(--text);font-weight:700}
+    .proposal .accent{color:var(--accent)}
+
+    /* subtle particles layer */
+    .particles{position:absolute;inset:0;pointer-events:none}
+
+    /* responsive tweaks */
+    @media (max-width:900px){
+      .book{flex-direction:column;padding:18px}
+      .paper,.text-page{width:100%}
+      .paper{min-height:40vh}
+      .text-page{min-height:26vh;padding:20px}
+    }
+
+    /* small flourish for 'ink write' animation */
+    .ink-write{display:inline-block;overflow:hidden;vertical-align:bottom}
+    .ink-write .mask{display:inline-block;transform-origin:left;animation:reveal 1.4s ease forwards}
+    @keyframes reveal{from{transform:scaleX(0)} to{transform:scaleX(1)}}
+
+    /* fade animation for page transitions */
+    .fade{opacity:0;transform:translateY(18px);transition:opacity .6s ease, transform .6s ease}
+    .fade.show{opacity:1;transform:none}
+
+    /* final celebration overlay */
+    .celebrate{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at center, rgba(255,255,255,.02), rgba(0,0,0,.6));backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity .6s}
+    .celebrate.show{opacity:1;pointer-events:auto}
+    .celebrate .msg{background:linear-gradient(180deg,#fffef8,#f9f1e6);padding:28px;border-radius:12px;color:var(--text);box-shadow:0 40px 100px rgba(0,0,0,.45);text-align:center}
+  </style>
+</head>
+<body>
+
+<!--
+  README / HOW-TO
+
+  1) This page expects your photos to be in /photos/ch1/, /photos/ch2/, ... /photos/ch7
+     and named 1.jpg, 2.jpg, 3.jpg ... or use png. Keep the file extensions consistent.
+
+  2) Edit the `CONFIG` object in the script below to set how many photos live in each chapter folder.
+     Example: CONFIG.counts = [6,8,5,10,7,9,4]
+
+  3) Place this file as index.html in a GitHub repo. Add the /photos folder (with subfolders) to repo.
+     Push to GitHub and enable GitHub Pages (branch: main, folder: / (root) ).
+
+  4) You can replace chapter texts in the `CHAPTERS` array below. Keep 7 entries.
+
+  5) For best results: pick 4 photos per chapter for the left page (the code will select up to 4 automatically).
+
+-->
+
+  <div class="stage">
+    <div class="book-wrap">
+      <div class="book" id="book">
+
+        <div class="paper" id="paper" aria-hidden="false">
+          <!-- photos grid inserted here -->
+        </div>
+
+        <div class="text-page" id="textPage">
+          <h1 class="chapter-title" id="chapterTitle">Loading…</h1>
+          <p class="line" id="line1"></p>
+          <p class="line" id="line2"></p>
+          <p class="line" id="line3"></p>
+        </div>
+
+        <canvas class="particles" id="particles"></canvas>
+      </div>
+
+      <div class="controls">
+        <button class="btn" id="prevBtn">← Prev</button>
+        <button class="btn primary" id="nextBtn">Next →</button>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="celebrate" id="celebrate">
+    <div class="msg">
+      <div style="font-size:22px;margin-bottom:10px;font-weight:700">She said <span style="color:var(--gold)">Yes</span> ✨</div>
+      <div style="color:var(--muted);margin-bottom:14px">May this be the first page of a very long book.</div>
+      <button class="btn primary" onclick="closeCelebrate()">Close</button>
+    </div>
+  </div>
+
+  <script>
+    /*******************
+     * USER CONFIG (edit these!)
+     *******************/
+    const CONFIG = {
+      chapters: 7,                // you chose 7
+      counts: [6,6,6,6,6,6,6],    // number of images in each ch folder (set correctly)
+      folderBase: 'photos',       // leave as-is unless you want different path
+      photoPrefix: '',            // if you prefix filenames, put it here (e.g. 'IMG_')
+      ext: 'jpg'                  // common extension (jpg or png). Keep consistent.
+    }
+
+    // Chapter text content (7 entries)
+    const CHAPTERS = [
+      {title: 'The First Moments', lines: ["We started with small, electric conversations.", "The world shrank to two people who couldn’t stop smiling.", 'Every tiny thing felt like an invitation.']},
+      {title: 'The Laughs & The Mess', lines: ['There were meltdowns and terrible jokes.','We learned the contours of each other’s hearts.','We kept laughing.']},
+      {title: 'Travels & Tiny Adventures', lines: ['Maps, trains, and late departures.','We leaned into chaos and came back holding hands.','Those days are permanent.']},
+      {title: 'Quiet Evenings', lines: ['Slow dinners and softer silences.','You taught me how to be at ease.','I started measuring time in your breaths.']},
+      {title: 'The Prophecy', lines: ['Someone once said we wouldn’t last past November.', 'The months rolled on and the prediction did not hold.', 'We made our own rules instead.']},
+      {title: 'When I Realized', lines: ['I stopped counting possibilities and started counting you.','Not once — every single day.','It felt less like chance and more like choice.']},
+      {title: 'The Page We Write', lines: ['One photo. One question. One slow heartbeat.', 'Will you be my girlfriend?', 'Click yes if our story continues.']}
+    ];
+
+    /*******************
+     * Core logic — do not edit below unless you know what you’re doing
+     *******************/
+
+    let chapterIndex = 0;
+    const paper = document.getElementById('paper');
+    const chapterTitle = document.getElementById('chapterTitle');
+    const lineEls = [document.getElementById('line1'), document.getElementById('line2'), document.getElementById('line3')];
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const particlesCanvas = document.getElementById('particles');
+    const celebrate = document.getElementById('celebrate');
+
+    // build image element helper
+    function imgEl(src, cls='photo'){
+      const img = document.createElement('img'); img.src = src; img.className = cls; img.loading='lazy'; return img;
+    }
+
+    // load a chapter photos: choose up to 4 photos for the left spread
+    function getPhotoPathsForChapter(ch){
+      const paths = [];
+      const count = CONFIG.counts[ch] || 0;
+      // pick up to 4: the algorithm chooses evenly across the folder
+      const picks = Math.min(4, count);
+      for(let i=0;i<picks;i++){
+        // distribute indices roughly evenly
+        const idx = Math.floor((i*(count-1))/(picks-1 || 1)) + 1;
+        paths.push(`${CONFIG.folderBase}/ch${ch+1}/${CONFIG.photoPrefix}${idx}.${CONFIG.ext}`);
+      }
+      return paths;
+    }
+
+    // render chapter
+    function renderChapter(i){
+      chapterIndex = i;
+      // animate out current
+      paper.innerHTML = '';
+      chapterTitle.textContent = '...';
+      lineEls.forEach(el=>{el.textContent=''; el.classList.remove('show'); el.classList.add('fade')});
+
+      // small delay to let fade happen
+      setTimeout(()=>{
+        // left: photos
+        const photoPaths = getPhotoPathsForChapter(i);
+        // create grid boxes (2x2 or more depending)
+        const frag = document.createDocumentFragment();
+        for(let p of photoPaths){
+          const wrapper = document.createElement('div');
+          wrapper.style.minHeight = 'calc(50% - 6px)';
+          const image = imgEl(p);
+          // robust fallback: if image 404, show placeholder
+          image.onerror = function(){this.src='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><rect width="100%" height="100%" fill="%23efe6d9"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b5a4a" font-family="Georgia, serif" font-size="24">Photo not found</text></svg>'}
+          wrapper.appendChild(image);
+          frag.appendChild(wrapper);
+        }
+        // if less than 4, fill with blurred duplicates of first (nice look)
+        while(frag.childNodes.length < 4){
+          const clone = frag.childNodes[0]?.firstChild?.cloneNode?.(true);
+          if(!clone) break;
+          frag.appendChild(clone);
+        }
+        // append into paper as a 2x2 grid
+        paper.appendChild(frag);
+
+        // right: text
+        const chData = CHAPTERS[i] || {title:'',lines:['','','']};
+        chapterTitle.textContent = chData.title;
+        for(let r=0;r<3;r++){
+          lineEls[r].textContent = chData.lines[r] || '';
+        }
+
+        // if final chapter, show interactive yes
+        if(i === CONFIG.chapters - 1){
+          // add proposal button below lines
+          const btn = document.createElement('button');
+          btn.className='btn primary';
+          btn.style.marginTop='18px';
+          btn.textContent='Yes';
+          btn.onclick = () => { triggerCelebrate(); }
+          lineEls[2].appendChild(document.createElement('br'));
+          lineEls[2].appendChild(btn);
+        }
+
+        // show elements with fade
+        setTimeout(()=>{
+          lineEls.forEach(el=>el.classList.add('show'));
+        }, 80);
+
+      }, 250);
+
+      updateButtons();
+    }
+
+    function updateButtons(){
+      prevBtn.disabled = chapterIndex === 0;
+      nextBtn.disabled = chapterIndex >= CONFIG.chapters - 1;
+    }
+
+    prevBtn.addEventListener('click', ()=>{ if(chapterIndex>0) renderChapter(chapterIndex-1) });
+    nextBtn.addEventListener('click', ()=>{ if(chapterIndex<CONFIG.chapters-1) renderChapter(chapterIndex+1) });
+
+    // particles: gentle gold specks
+    function startParticles(){
+      const canvas = particlesCanvas; const ctx = canvas.getContext('2d');
+      function resize(){canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight}
+      window.addEventListener('resize', resize); resize();
+      const particles = [];
+      for(let i=0;i<60;i++) particles.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height, vx:(Math.random()-0.5)*.2, vy:(Math.random()-0.5)*.2, r: Math.random()*1.6+0.4, alpha: Math.random()*0.9+.1});
+      function tick(){ ctx.clearRect(0,0,canvas.width,canvas.height); for(let p of particles){ p.x += p.vx; p.y += p.vy; if(p.x<0)p.x=canvas.width; if(p.x>canvas.width)p.x=0; if(p.y<0)p.y=canvas.height; if(p.y>canvas.height)p.y=0; ctx.beginPath(); ctx.fillStyle = `rgba(217,179,107,${p.alpha})`; ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); } requestAnimationFrame(tick); }
+      tick();
+    }
+
+    function triggerCelebrate(){
+      celebrate.classList.add('show');
+      // small confetti like burst
+      confettiBurst();
+    }
+    function closeCelebrate(){ celebrate.classList.remove('show'); }
+
+    // tiny confetti using canvas overlay
+    function confettiBurst(){
+      const c = document.createElement('canvas'); c.style.position='fixed'; c.style.left=0; c.style.top=0; c.style.width='100%'; c.style.height='100%'; c.style.pointerEvents='none'; document.body.appendChild(c);
+      const ctx = c.getContext('2d'); function fit(){c.width=window.innerWidth; c.height=window.innerHeight} fit(); window.addEventListener('resize', fit);
+      const pieces = [];
+      for(let i=0;i<120;i++){ pieces.push({x:window.innerWidth/2 + (Math.random()-0.5)*200, y:window.innerHeight/2 + (Math.random()-0.5)*80, vx:(Math.random()-0.5)*6, vy:-Math.random()*8-2, r:Math.random()*6+2, color: `hsl(${Math.random()*40+20},60%,60%)`, rot: Math.random()*360, vr:(Math.random()-0.5)*12 }); }
+      let t0 = performance.now(); function draw(t){ const dt = (t - t0)/1000; t0 = t; ctx.clearRect(0,0,c.width,c.height); for(let p of pieces){ p.x += p.vx; p.y += p.vy; p.vy += 0.35; p.rot += p.vr; ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot*Math.PI/180); ctx.fillStyle=p.color; ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*1.6); ctx.restore(); } if(pieces.length){ requestAnimationFrame(draw); } }
+      draw(performance.now()); setTimeout(()=>{ document.body.removeChild(c); }, 3000);
+    }
+
+    // initialize
+    (function init(){
+      renderChapter(0);
+      startParticles();
+    })();
+
+  </script>
+</body>
+</html>
