@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Our Book — Will you be my girlfriend?</title>
-  <meta name="description" content="A little magical memory-book built for her. Drop photos into folders and host on GitHub Pages." />
+  <meta name="description" content="A little magical memory-book built for her." />
   <style>
     :root{
       --bg: #0f0b08;
@@ -14,65 +14,120 @@
       --muted: #6b5a4a;
       --accent: #b76d9b;
       --max-width: 1100px;
-      --safe-pad: 24px;
-      font-family: 'Georgia', ui-serif, serif;
+      font-family: 'Georgia', serif;
     }
 
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0;background:radial-gradient(1200px 600px at 10% 10%, rgba(215,185,135,0.06), transparent 10%), linear-gradient(180deg,var(--bg), #0b0b0b 60%);color:var(--paper)}
+    body { margin:0; background:var(--bg); color:var(--paper); }
 
-    body::after{
-      content:'';pointer-events:none;position:fixed;inset:0;background-image:radial-gradient(ellipse at center, rgba(0,0,0,0.2), transparent 40%);
-      mix-blend-mode:overlay;opacity:.6
+    /* PASSWORD SCREEN */
+    #lockScreen {
+      position:fixed; inset:0;
+      background:linear-gradient(180deg,#0f0b08,#000);
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      z-index:99999;
+      font-family:'Georgia', serif;
+    }
+    #lockBox {
+      background:#1a1613; padding:40px 50px;
+      border-radius:14px; box-shadow:0 0 40px rgba(0,0,0,0.6);
+      text-align:center;
+    }
+    #lockBox h2 {
+      color:var(--gold); margin:0 0 20px 0;
+      font-size:26px;
+    }
+    #passwordInput {
+      padding:12px 16px; font-size:16px;
+      border-radius:8px; border:1px solid #444;
+      width:230px; margin-bottom:16px;
+    }
+    #unlockBtn {
+      padding:10px 22px; font-size:16px;
+      background:var(--gold); color:#000;
+      border:none; border-radius:8px; cursor:pointer;
+    }
+    #errorMsg {
+      margin-top:10px; color:#ff9b9b;
+      font-size:14px; display:none;
     }
 
-    .stage{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:60px}
+    /* BOOK STYLES */
+    .stage{min-height:100vh;display:none;align-items:center;justify-content:center;padding:60px}
+    .stage.show { display:flex; animation:fadeIn 1s ease forwards; }
+
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
     .book-wrap{width:100%;max-width:var(--max-width);position:relative}
 
     .book{
-      display:flex;gap:28px;padding:36px;border-radius:12px;background:linear-gradient(180deg,#111010 0%, #0e0c0b 100%);box-shadow:0 20px 80px rgba(0,0,0,.6);
-      align-items:center;justify-content:center;overflow:hidden;position:relative
+      display:flex;gap:28px;padding:36px;border-radius:12px;
+      background:linear-gradient(180deg,#111010,#0e0c0b);
+      box-shadow:0 20px 80px rgba(0,0,0,.6);
     }
 
     .paper{
-      width:55%;min-height:60vh;background:linear-gradient(180deg,#fffef8 0%, #f4eadf 100%);border-radius:8px;padding:28px;display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.5);
+      width:55%;min-height:60vh;background:linear-gradient(#fffef8,#f4eadf);
+      border-radius:8px;padding:28px;display:grid;grid-template-columns:1fr 1fr;gap:12px;
     }
 
-    .photo{width:100%;height:100%;object-fit:cover;border-radius:6px;box-shadow:0 8px 30px rgba(13,10,9,.35);transform-origin:center;transition:transform .6s cubic-bezier(.2,.9,.3,1)}
-    .photo:hover{transform:scale(1.03)}
-
-    .text-page{width:45%;min-height:60vh;background:linear-gradient(180deg,#fffcf6 0%, #fbf3e8 100%);border-radius:8px;padding:40px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;box-shadow:inset 0 1px 0 rgba(255,255,255,.6)}
-
-    h1.chapter-title{font-family: 'Palatino Linotype', 'Georgia', serif;margin:0;font-size:30px;color:var(--text);letter-spacing:0.2px}
-    p.line{color:var(--muted);font-size:18px;margin:12px 0;line-height:1.45}
-
-    .controls{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);display:flex;gap:12px}
-    .btn{background:transparent;border:1px solid rgba(255,255,255,.06);color:var(--paper);padding:10px 14px;border-radius:9px;cursor:pointer;font-size:15px}
-    .btn.primary{background:linear-gradient(90deg,var(--gold), #f7daa5);color:var(--text);box-shadow:0 8px 30px rgba(215,170,95,.15)}
-
-    .particles{position:absolute;inset:0;pointer-events:none}
-
-    @media (max-width:900px){
-      .book{flex-direction:column;padding:18px}
-      .paper,.text-page{width:100%}
-      .paper{min-height:40vh}
-      .text-page{min-height:26vh;padding:20px}
+    .photo{
+      width:100%;height:100%;object-fit:cover;border-radius:6px;
+      box-shadow:0 8px 30px rgba(13,10,9,.35);
     }
 
-    .celebrate{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at center, rgba(255,255,255,.02), rgba(0,0,0,.6));backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity .6s}
-    .celebrate.show{opacity:1;pointer-events:auto}
-    .celebrate .msg{background:linear-gradient(180deg,#fffef8,#f9f1e6);padding:28px;border-radius:12px;color:var(--text);box-shadow:0 40px 100px rgba(0,0,0,.45);text-align:center}
+    .text-page{
+      width:45%;min-height:60vh;background:linear-gradient(#fffcf6,#fbf3e8);
+      border-radius:8px;padding:40px;display:flex;flex-direction:column;
+      justify-content:center;align-items:flex-start;
+    }
+
+    h1.chapter-title{font-family:'Palatino Linotype',serif;font-size:30px;margin:0;color:var(--text)}
+    p.line{color:var(--muted);font-size:18px;line-height:1.45}
+
+    .controls{
+      position:absolute;bottom:18px;left:50%;transform:translateX(-50%);
+      display:flex;gap:12px;
+    }
+
+    .btn{
+      background:transparent;border:1px solid rgba(255,255,255,.06);
+      color:var(--paper);padding:10px 14px;border-radius:9px;cursor:pointer;
+      font-size:15px;
+    }
+    .btn.primary{
+      background:linear-gradient(90deg,var(--gold),#f7daa5);
+      color:var(--text);box-shadow:0 8px 30px rgba(215,170,95,.15);
+    }
+
+    .celebrate{position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+      background:rgba(0,0,0,.4); backdrop-filter:blur(2px); opacity:0; pointer-events:none;
+      transition:.4s; }
+    .celebrate.show { opacity:1; pointer-events:auto; }
+    .celebrate .msg{background:#fffef8;padding:28px;border-radius:12px;color:var(--text);text-align:center}
   </style>
 </head>
 <body>
 
-  <div class="stage">
+  <!-- PASSWORD LOCK -->
+  <div id="lockScreen">
+    <div id="lockBox">
+      <h2>Enter the secret key</h2>
+      <input id="passwordInput" type="password" placeholder="Password">
+      <br>
+      <button id="unlockBtn">Unlock</button>
+      <div id="errorMsg">Incorrect password</div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="stage" id="stage">
     <div class="book-wrap">
       <div class="book" id="book">
 
         <div class="paper" id="paper"></div>
 
-        <div class="text-page" id="textPage">
+        <div class="text-page">
           <h1 class="chapter-title" id="chapterTitle">Loading…</h1>
           <p class="line" id="line1"></p>
           <p class="line" id="line2"></p>
@@ -93,243 +148,156 @@
   <div class="celebrate" id="celebrate">
     <div class="msg">
       <div style="font-size:22px;margin-bottom:10px;font-weight:700">She said <span style="color:var(--gold)">Yes</span> ✨</div>
-      <div style="color:var(--muted);margin-bottom:14px">May this be the first page of a very long book.</div>
       <button class="btn primary" onclick="closeCelebrate()">Close</button>
     </div>
   </div>
 
   <script>
+    /* -----------------------------
+       PASSWORD PROTECTION (SHA-256)
+    ------------------------------ */
+
+    const PASSWORD_HASH = "c3a070eebcc14e55f4188fefd6bae515f6ad668af68b952a8b6e0ba01c7d11ee"; // onlyfortoffy
+
+    async function sha256(str){
+      const enc = new TextEncoder().encode(str);
+      const hash = await crypto.subtle.digest("SHA-256", enc);
+      return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,"0")).join("");
+    }
+
+    document.getElementById("unlockBtn").onclick = async ()=>{
+      const input = document.getElementById("passwordInput").value;
+      const hash = await sha256(input);
+
+      if(hash === PASSWORD_HASH){
+        document.getElementById("lockScreen").style.display="none";
+        document.getElementById("stage").classList.add("show");
+      } else {
+        document.getElementById("errorMsg").style.display="block";
+      }
+    };
+
+    /* ----------------------------
+       BOOK CONFIG
+    ----------------------------- */
+
     const CONFIG = {
       chapters: 7,
       totalPhotos: 83,
       folderBase: 'photos/all',
-      photoPrefix: '',
       ext: 'jpg'
     };
 
     const CHAPTERS = [
-      {title: 'The First Moments', lines: ["We started with small, electric conversations.", "The world shrank to two people who couldn’t stop smiling.", 'Every tiny thing felt like an invitation.']},
-      {title: 'The Laughs & The Mess', lines: ['There were meltdowns and terrible jokes.','We learned the contours of each other’s hearts.','We kept laughing.']},
-      {title: 'Travels & Tiny Adventures', lines: ['Maps, trains, and late departures.','We leaned into chaos and came back holding hands.','Those days are permanent.']},
-      {title: 'Quiet Evenings', lines: ['Slow dinners and softer silences.','You taught me how to be at ease.','I started measuring time in your breaths.']},
-      {title: 'The Prophecy', lines: ['Someone once said we wouldn’t last past November.', 'The months rolled on and the prediction did not hold.', 'We made our own rules instead.']},
-      {title: 'When I Realized', lines: ['I stopped counting possibilities and started counting you.','Not once — every single day.','It felt less like chance and more like choice.']},
-      {title: 'The Page We Write', lines: ['One photo. One question. One slow heartbeat.', 'Will you be my girlfriend?', 'Click yes if our story continues.']}
+      {title:'The First Moments',lines:["You told me I said the word.","I have always loved you.","Every tiny thing felt like everything to me."]},
+      {title:'The Laughs & The Mess',lines:["There were meltdowns and terrible jokes.","We learned and understood eachother","We kept laughing."]},
+      {title:'Travels & Tiny Adventures',lines:["Maps, trains, and late departures.","We leaned into chaos and came back holding hands.","Those days are permanent."]},
+      {title:'Quiet Evenings',lines:["Slow dinners and softer silences.","You taught me how to be at ease.","I started measuring time in your breaths."]},
+      {title:'The Prophecy',lines:["Someone once said we wouldn’t last past November.","The months rolled on and the prediction did not hold.","We made our own rules instead."]},
+      {title:'When I Realized',lines:["I stopped counting possibilities and started counting you.","Not once but every single day.","It felt less like chance and more like choice."]},
+      {title:'The Page We Write',lines:["Now, one question reigns supreme my toffy!","Will you be my girlfriend?","Click yes if our story continues."]}
     ];
 
     let chapterIndex = 0;
-    const paper = document.getElementById('paper');
-    const chapterTitle = document.getElementById('chapterTitle');
+    let unusedPhotos = [];
+
+    const paper = document.getElementById("paper");
+    const chapterTitle = document.getElementById("chapterTitle");
     const lineEls = [
-      document.getElementById('line1'),
-      document.getElementById('line2'),
-      document.getElementById('line3')
+      document.getElementById("line1"),
+      document.getElementById("line2"),
+      document.getElementById("line3")
     ];
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const particlesCanvas = document.getElementById('particles');
-    const celebrate = document.getElementById('celebrate');
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const celebrate = document.getElementById("celebrate");
 
     function imgEl(src){
-      const img = document.createElement('img');
-      img.src = src;
-      img.className = 'photo';
-      img.loading='lazy';
-      img.onerror = function(){
-        this.src='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><rect width="100%" height="100%" fill="%23efe6d9"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b5a4a" font-family="Georgia, serif" font-size="24">Photo not found</text></svg>';
-      };
+      const img=document.createElement("img");
+      img.src=src; img.className="photo";
+      img.onerror=()=>{img.style.opacity="0.2"};
       return img;
     }
 
-    let unusedPhotos = [];
-
     function initUnused(){
-      unusedPhotos = [];
+      unusedPhotos=[];
       for(let i=1;i<=CONFIG.totalPhotos;i++) unusedPhotos.push(i);
-      for(let i = unusedPhotos.length - 1; i > 0; i--){
-        const j = Math.floor(Math.random() * (i + 1));
-        [unusedPhotos[i], unusedPhotos[j]] = [unusedPhotos[j], unusedPhotos[i]];
+      for(let i=unusedPhotos.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        [unusedPhotos[i],unusedPhotos[j]]=[unusedPhotos[j],unusedPhotos[i]];
       }
     }
 
-    function getPhotoPathsForChapter(){
-      const picks = [];
+    function getPhotoPaths(){
+      const picks=[];
       for(let i=0;i<4;i++){
-        if(unusedPhotos.length === 0) break;
-        const id = unusedPhotos.pop();
-        picks.push(`${CONFIG.folderBase}/${CONFIG.photoPrefix}${id}.${CONFIG.ext}`);
+        if(unusedPhotos.length===0) break;
+        const id=unusedPhotos.pop();
+        picks.push(`${CONFIG.folderBase}/${id}.${CONFIG.ext}`);
       }
       return picks;
     }
 
     function renderChapter(i){
-      chapterIndex = i;
-      paper.innerHTML = '';
-      chapterTitle.textContent = '...';
-      lineEls.forEach(el => {
-        el.textContent='';
-      });
+      chapterIndex=i;
+      paper.innerHTML="";
+      chapterTitle.textContent="...";
+      lineEls.forEach(el=>el.textContent="");
 
       setTimeout(()=>{
-        const photoPaths = getPhotoPathsForChapter(i);
-        const frag = document.createDocumentFragment();
-        for(let p of photoPaths){
-          const wrapper = document.createElement('div');
-          wrapper.style.minHeight = 'calc(50% - 6px)';
-          wrapper.appendChild(imgEl(p));
-          frag.appendChild(wrapper);
+        const paths=getPhotoPaths();
+        const frag=document.createDocumentFragment();
+
+        for(const p of paths){
+          const wrap=document.createElement("div");
+          wrap.style.minHeight="calc(50% - 6px)";
+          wrap.appendChild(imgEl(p));
+          frag.appendChild(wrap);
         }
 
-        while(frag.childNodes.length < 4){
-          const clone = frag.childNodes[0]?.firstChild?.cloneNode(true);
+        while(frag.childNodes.length<4){
+          const clone=frag.childNodes[0]?.firstChild?.cloneNode(true);
           if(!clone) break;
-          const wrap = document.createElement('div');
-          wrap.style.minHeight = 'calc(50% - 6px)';
+          const wrap=document.createElement("div");
+          wrap.style.minHeight="calc(50% - 6px)";
           wrap.appendChild(clone);
           frag.appendChild(wrap);
         }
 
         paper.appendChild(frag);
 
-        const chData = CHAPTERS[i];
-        chapterTitle.textContent = chData.title;
-        for(let r=0;r<3;r++){
-          lineEls[r].textContent = chData.lines[r] || '';
-        }
+        const ch=CHAPTERS[i];
+        chapterTitle.textContent=ch.title;
+        for(let r=0;r<3;r++) lineEls[r].textContent=ch.lines[r];
 
-        if(i === CONFIG.chapters - 1){
-          const btn = document.createElement('button');
-          btn.className='btn primary';
-          btn.style.marginTop='18px';
-          btn.textContent='Yes';
-          btn.onclick = triggerCelebrate;
-          lineEls[2].appendChild(document.createElement('br'));
+        if(i===CONFIG.chapters-1){
+          const btn=document.createElement("button");
+          btn.className="btn primary";
+          btn.style.marginTop="18px";
+          btn.textContent="Yes";
+          btn.onclick=()=>celebrate.classList.add("show");
+          lineEls[2].appendChild(document.createElement("br"));
           lineEls[2].appendChild(btn);
         }
 
-      }, 100);
+      },100);
 
       updateButtons();
     }
 
     function updateButtons(){
-      prevBtn.disabled = chapterIndex === 0;
-      nextBtn.disabled = chapterIndex >= CONFIG.chapters - 1;
+      prevBtn.disabled=chapterIndex===0;
+      nextBtn.disabled=chapterIndex>=CONFIG.chapters-1;
     }
 
-    prevBtn.addEventListener('click', ()=>{ if(chapterIndex>0) renderChapter(chapterIndex-1) });
-    nextBtn.addEventListener('click', ()=>{ if(chapterIndex<CONFIG.chapters-1) renderChapter(chapterIndex+1) });
-
-    function startParticles(){
-      const canvas = particlesCanvas;
-      const ctx = canvas.getContext('2d');
-      function resize(){
-        canvas.width = canvas.clientWidth;
-        canvas.height = canvas.clientHeight;
-      }
-      window.addEventListener('resize', resize);
-      resize();
-
-      const particles = [];
-      for(let i=0;i<60;i++){
-        particles.push({
-          x:Math.random()*canvas.width,
-          y:Math.random()*canvas.height,
-          vx:(Math.random()-0.5)*.2,
-          vy:(Math.random()-0.5)*.2,
-          r: Math.random()*1.6+0.4,
-          alpha: Math.random()*0.9+.1
-        });
-      }
-
-      function tick(){
-        ctx.clearRect(0,0,canvas.width,canvas.height);
-        for(let p of particles){
-          p.x += p.vx;
-          p.y += p.vy;
-          if(p.x<0)p.x=canvas.width;
-          if(p.x>canvas.width)p.x=0;
-          if(p.y<0)p.y=canvas.height;
-          if(p.y>canvas.height)p.y=0;
-          ctx.beginPath();
-          ctx.fillStyle = `rgba(217,179,107,${p.alpha})`;
-          ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-          ctx.fill();
-        }
-        requestAnimationFrame(tick);
-      }
-      tick();
-    }
-
-    function triggerCelebrate(){
-      celebrate.classList.add('show');
-      confettiBurst();
-    }
-
-    function closeCelebrate(){
-      celebrate.classList.remove('show');
-    }
-
-    function confettiBurst(){
-      const c = document.createElement('canvas');
-      c.style.position='fixed';
-      c.style.left=0;
-      c.style.top=0;
-      c.style.width='100%';
-      c.style.height='100%';
-      c.style.pointerEvents='none';
-      document.body.appendChild(c);
-
-      const ctx = c.getContext('2d');
-      function fit(){
-        c.width=window.innerWidth;
-        c.height=window.innerHeight;
-      }
-      fit();
-      window.addEventListener('resize', fit);
-
-      const pieces = [];
-      for(let i=0;i<120;i++){
-        pieces.push({
-          x:window.innerWidth/2 + (Math.random()-0.5)*200,
-          y:window.innerHeight/2 + (Math.random()-0.5)*80,
-          vx:(Math.random()-0.5)*6,
-          vy:-Math.random()*8-2,
-          r:Math.random()*6+2,
-          color: `hsl(${Math.random()*40+20},60%,60%)`,
-          rot: Math.random()*360,
-          vr:(Math.random()-0.5)*12
-        });
-      }
-
-      let t0 = performance.now();
-      function draw(t){
-        ctx.clearRect(0,0,c.width,c.height);
-        for(let p of pieces){
-          p.x += p.vx;
-          p.y += p.vy;
-          p.vy += 0.35;
-          p.rot += p.vr;
-
-          ctx.save();
-          ctx.translate(p.x,p.y);
-          ctx.rotate(p.rot*Math.PI/180);
-          ctx.fillStyle=p.color;
-          ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*1.6);
-          ctx.restore();
-        }
-        requestAnimationFrame(draw);
-      }
-      draw(performance.now());
-
-      setTimeout(()=>{ document.body.removeChild(c); }, 3000);
-    }
+    prevBtn.onclick=()=>{ if(chapterIndex>0) renderChapter(chapterIndex-1); };
+    nextBtn.onclick=()=>{ if(chapterIndex<CONFIG.chapters-1) renderChapter(chapterIndex+1); };
 
     (function init(){
       initUnused();
       renderChapter(0);
-      startParticles();
     })();
   </script>
+
 </body>
 </html>
